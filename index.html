@@ -1,0 +1,93 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>مؤشر القراءة العربي</title>
+  <style>
+    body {
+      font-family: 'Cairo', sans-serif;
+      margin: 20px;
+      background: #f9f9f9;
+      color: #333;
+      direction: rtl;
+    }
+    textarea {
+      width: 100%;
+      height: 150px;
+      font-size: 1rem;
+      padding: 10px;
+    }
+    button {
+      margin-top: 10px;
+      padding: 10px 20px;
+      font-size: 1rem;
+      cursor: pointer;
+    }
+    .result {
+      margin-top: 20px;
+      background: #fff;
+      padding: 15px;
+      border-radius: 8px;
+      box-shadow: 0 0 10px rgba(0,0,0,0.1);
+    }
+  </style>
+</head>
+<body>
+  <h2>🔍 مؤشر القراءة العربي (مستوحى من PISA)</h2>
+  <p>أدخل نصًا عربيًا ليتم تحليله وتقدير مستوى الفهم القرائي (من 1 إلى 6).</p>
+  <textarea id="textInput" placeholder="اكتب النص هنا..."></textarea>
+  <button onclick="analyzeText()">تحليل النص</button>
+  <div class="result" id="output"></div>
+
+  <script>
+    const connectors = ["لكن", "لذلك", "رغم", "بينما", "إذ", "ثم", "وبالتالي", "ومع ذلك"];
+
+    function countSentences(text) {
+      return (text.match(/[.؟!؛]/g) || []).length || 1;
+    }
+
+    function countWords(text) {
+      return text.trim().split(/\s+/).length;
+    }
+
+    function countLongWords(text) {
+      return text.trim().split(/\s+/).filter(word => word.length > 6).length;
+    }
+
+    function countConnectors(text) {
+      return text.trim().split(/\s+/).filter(word => connectors.includes(word)).length;
+    }
+
+    function estimateLevel(words, sentences, longWords, connectorsCount) {
+      let avgSentenceLength = words / sentences;
+      let score = 1;
+      if (avgSentenceLength > 12) score++;
+      if (longWords > words / 4) score++;
+      if (connectorsCount >= 2) score++;
+      if (avgSentenceLength > 15 && connectorsCount >= 4) score += 2;
+      return Math.min(score, 6);
+    }
+
+    function analyzeText() {
+      const text = document.getElementById("textInput").value;
+      const sentences = countSentences(text);
+      const words = countWords(text);
+      const longWords = countLongWords(text);
+      const connectorsCount = countConnectors(text);
+      const avgSentenceLength = (words / sentences).toFixed(2);
+      const level = estimateLevel(words, sentences, longWords, connectorsCount);
+
+      document.getElementById("output").innerHTML = `
+        <strong>نتائج التحليل:</strong><br>
+        ✅ عدد الجمل: ${sentences}<br>
+        ✅ عدد الكلمات: ${words}<br>
+        ✅ عدد الكلمات الطويلة: ${longWords}<br>
+        ✅ عدد أدوات الربط المنطقي: ${connectorsCount}<br>
+        ✅ متوسط طول الجملة: ${avgSentenceLength} كلمة<br><br>
+        📊 <strong>المستوى التقديري للقراءة:</strong> المستوى <strong>${level}</strong> من 6
+      `;
+    }
+  </script>
+</body>
+</html>
